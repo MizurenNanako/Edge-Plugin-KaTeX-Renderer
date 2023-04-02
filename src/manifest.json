@@ -1,0 +1,28 @@
+{
+    "name": "KaTeX Renderer",
+    "version": "1.0",
+    "description": "A plugin to render mathematical equations using KaTeX",
+    "author": "Mizuren Nanako",
+    "manifest_version": 3,
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content_scripts/content.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "content_scripts/content.js",
+                "katex/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}
