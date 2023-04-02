@@ -12,18 +12,18 @@ if (!katexLoaded && !mathJaxLoaded) {
     document.head.appendChild(katexCSS);
 
     // Load the KaTeX JavaScript file from the plugin's directory
-    var katexJS = document.createElement('script');
-    katexJS.setAttribute('type', 'text/javascript');
+    // var katexJS = document.createElement('script');
+    // katexJS.setAttribute('type', 'text/javascript');
     var src = chrome.runtime.getURL("katex/katex.min.js");
     import(src);
-    katexJS.setAttribute('src', src);
-    console.log('katex.min.js URL:', katexJS.getAttribute('src'));
-    document.head.appendChild(katexJS);
+    // katexJS.setAttribute('src', src);
+    // console.log('katex.min.js URL:', katexJS.getAttribute('src'));
+    // document.head.appendChild(katexJS);
 
     // Wait for the KaTeX library to load before rendering equations
-    katexJS.addEventListener('load', function () {
+    // katexJS.addEventListener('load', function () {
         renderMathEquations();
-    });
+    // });
 
     // Listen for changes to the DOM and re-render equations if necessary
     var observer = new MutationObserver(function () {
@@ -86,7 +86,7 @@ function renderMathEquations() {
                 element.innerHTML = newText;
 
             }
-            // element.setAttribute('katex-loaded', 'true');
+            element.setAttribute('katex-loaded', 'true');
         }
     }
 }
