@@ -46,7 +46,7 @@ function inithooks() {
     // });
     // observer.observe(document.body, { childList: true, subtree: true });
 
-    const selectorStr = 'p:not([katex-loaded]), span:not([katex-loaded]), div:not(:has(div)):not([katex-loaded])';
+    const selectorStr = 'p:not([katex-loaded]), div:not(:has(div)):not([katex-loaded]) > span:not([katex-loaded])';
 
     function InstantRender() {
         var selection = window.getSelection();
@@ -133,6 +133,7 @@ function renderMathEquations(elements, criteria) {
     for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
         if (criteria(element)) {
+            console.log(element);
             renderMathEquation(element);
         }
     }
@@ -166,7 +167,7 @@ function renderMathEquation(element) {
         element.innerHTML = newText;
 
     }
-    element.setAttribute('katex-loaded', 'true');
+    // element.setAttribute('katex-loaded', 'true');
 }
 
 // Define a function to check if an element is currently visible on the screen
