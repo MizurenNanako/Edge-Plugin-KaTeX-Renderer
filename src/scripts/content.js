@@ -46,7 +46,8 @@ function inithooks() {
     // });
     // observer.observe(document.body, { childList: true, subtree: true });
 
-    const selectorStr = 'p:not([katex-loaded]), div:not(:has(div)):not([katex-loaded]) > span:not([katex-loaded])';
+    // const selectorStr = 'p:not([katex-loaded]), div:not([katex-loaded]) > span:not([katex-loaded])';
+    const selectorStr = 'p, div > span, div:not(:has(div)):not(:has(span)):not(:has(p))';
 
     function InstantRender() {
         var selection = window.getSelection();
@@ -83,8 +84,8 @@ function inithooks() {
             if (theSpan && theSpan.className === 'katex') {
                 if (!isElementInViewport(theSpan))
                     continue;
-                if (theDis && theDis.className === 'katex-display')
-                    theDis.outerHTML = '$$' + element.textContent + '$$';
+                if (theDis && ['katex-display', 'math math-inline'].includes(theDis.className))
+                    theDis.outerHTML = '<br/>$$' + element.textContent + '$$<br/>';
                 // else if (theDis.className.search('math') != -1)
                 //     theDis.parentNode.innerHTML = '$' + element.textContent + '$';
                 else
@@ -101,7 +102,7 @@ function inithooks() {
             var theDis = theSpan.parentNode;
             if (theSpan && theSpan.className === 'katex') {
                 if (theDis && theDis.className === 'katex-display')
-                    theDis.outerHTML = '$$' + element.textContent + '$$';
+                    theDis.outerHTML = '<br/>$$' + element.textContent + '$$<br/>';
                 // else if (theDis.className.search('math') != -1)
                 //     theDis.parentNode.innerHTML = '$' + element.textContent + '$';
                 else
@@ -162,12 +163,22 @@ function inithooks() {
         const newElement = document.createElement('span');
         // Append the selected content to the new element
         newElement.appendChild(selection.getRangeAt(0).cloneContents());
-        try {
-            katex.renderToString(newElement.innerHTML);
-            alert("Syntax Check Passed.");
-        } catch (err) {
-            console.error('Error rendering equation: ', err);
-            alert("Syntax Check Failed: " + err);
+        const elems = newElement.innerHTML.trim().matchAll(/\$\$(.*?)\$\$|\$(.*?)\$/gm);
+        // Expected: Array ["match1", "grp1$$", "grp2$", "1"]
+        var success = true;
+        for (const elem of elems) {
+            const el = elem[1] ? elem[1] : elem[2];
+            try {
+                console.log(el);
+                katex.renderToString(el);
+            } catch (err) {
+                // console.error('Error rendering equation: ', err);
+                success = false;
+                alert("Syntax Check Failed: " + err);
+            }
+        }
+        if (success) {
+            alert("All Syntax Check Passed.");
         }
     }
 
@@ -210,25 +221,33 @@ function renderMathEquations(elements, criteria) {
 function renderMathEquation(element) {
     var content = element.textContent;
 
+    function errRet(err, p1) {
+        // console.error('Error rendering equation: ', err);
+        // span.katex > span.katex-mathml > math > semantics > annotation
+        return '<span class="katex"><span style="color:red">'
+            + err
+            + '</span><span class="katex-mathml"><math><semantics><annotation>'
+            + p1
+            + '</annotation></semantics></math></span></span>';
+    }
+
     if (content.includes('$')) {
 
         var regex = /\$\$(.*?)\$\$/g;
-        var newText = content.replace(regex, function (match, p1) {
+        var newText = content.replace(regex, function (_match, p1) {
             try {
                 return katex.renderToString(p1.trim(), { displayMode: true });
             } catch (err) {
-                console.error('Error rendering equation: ', err);
-                return match;
+                return errRet(err, p1);
             }
         });
 
         regex = /\$(.*?)\$/g;
-        newText = newText.replace(regex, function (match, p1) {
+        newText = newText.replace(regex, function (_match, p1) {
             try {
                 return katex.renderToString(p1.trim());
             } catch (err) {
-                console.error('Error rendering equation: ', err);
-                return match;
+                return errRet(err, p1);
             }
         });
 

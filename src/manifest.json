@@ -1,6 +1,6 @@
 {
     "name": "KaTeX Renderer",
-    "version": "1.2.5",
+    "version": "2.0.3",
     "description": "A plugin to render mathematical equations using KaTeX",
     "author": "Mizuren Nanako",
     "manifest_version": 3,
