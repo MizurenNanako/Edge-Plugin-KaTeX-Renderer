@@ -22,63 +22,117 @@ if (!katexLoaded && !mathJaxLoaded) {
 
     // Wait for the KaTeX library to load before rendering equations
     katexJS.addEventListener('load', function () {
-        // renderMathEquations();
         inithooks();
     });
 }
 
-// Only activate lazy loading if KaTeX has been loaded
+// Only activate listeners if KaTeX has been loaded
 if (katexLoaded) {
     inithooks();
-
 }
 
 function inithooks() {
-    // Call the renderMathEquations function when the page is first loaded
-    // renderMathEquations();
+    // Call the renderOnScreen function when the page is first loaded
+    // renderOnScreen();
 
-    // Listen for scroll events and call the renderMathEquations function as the user scrolls down the page
+    // Listen for scroll events and call the renderOnScreen function as the user scrolls down the page
     // window.addEventListener('scroll', function () {
-    //     renderMathEquations();
+    //     renderOnScreen();
     // });
 
     // Listen for changes to the DOM and re-render equations if necessary
     // var observer = new MutationObserver(function () {
-    //     renderMathEquations();
+    //     renderOnScreen();
     // });
     // observer.observe(document.body, { childList: true, subtree: true });
 
-    function KIR() {
+    const selectorStr = 'p:not([katex-loaded]), span:not([katex-loaded]), div:not(:has(div)):not([katex-loaded])';
+
+    function InstantRender() {
         var selection = window.getSelection();
         if (selection.isCollapsed) {
-            renderMathEquations();
-            console.log('KIR');
+            var elements = document.querySelectorAll(selectorStr);
+            renderMathEquations(elements, isElementInViewport);
+            console.log('Instant Render');
         }
         else {
             renderMathEquation(selection.anchorNode.parentElement);
-            console.log('KIRDOM');
+            console.log('Instant Render in Selection');
+        }
+    }
+
+    function FullPageRender() {
+        var elements = document.querySelectorAll(selectorStr);
+        renderMathEquations(elements, (elem) => true);
+    }
+
+    function ForceRender() {
+        var selection = window.getSelection();
+        if (selection.isCollapsed) {
+            console.log('Force Render: No Selection!');
+        }
+        else {
+            // Get the range that corresponds to the selection
+            const range = selection.getRangeAt(0);
+            // Extract the selected content from the DOM tree
+            const selectedContent = range.extractContents();
+            // Create a new element to replace the selected content
+            const newElement = document.createElement('span');
+            // Append the selected content to the new element
+            newElement.appendChild(selectedContent);
+            // Modify the contents of the new element as needed
+            try {
+                newElement.innerHTML = katex.renderToString(newElement.innerHTML);
+            } catch (err) {
+                console.error('Error rendering equation: ', err);
+                newElement.innerHTML = newElement.innerHTML;
+            }
+            // Insert the new element into the DOM tree
+            range.insertNode(newElement);
+            // Reinsert the remaining text before and after the selection
+            const startContainer = range.startContainer;
+            const endContainer = range.endContainer;
+            if (startContainer !== endContainer) {
+                let currentNode = startContainer.nextSibling;
+                while (currentNode && currentNode !== endContainer) {
+                    const nextNode = currentNode.nextSibling;
+                    newElement.parentNode.insertBefore(currentNode, newElement.nextSibling);
+                    currentNode = nextNode;
+                }
+                newElement.parentNode.insertBefore(endContainer, newElement.nextSibling);
+            } else {
+                const secondHalf = startContainer.splitText(range.endOffset);
+                newElement.parentNode.insertBefore(secondHalf, newElement.nextSibling);
+            }
+            console.log('Force Render');
         }
     }
 
     chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-        if (message.action == "KIR") {
-            KIR();
+        switch (message.action) {
+            case "KIR":
+                InstantRender();
+                break;
+            case "KFPR":
+                FullPageRender();
+                break;
+            case "KFR":
+                ForceRender();
+                break;
+            case "KSC":
+                // to do
+                break;
+            default:
+                break;
         }
     });
-    // chrome.action.onClicked.addListener(function (tab) { KIR(); });
 }
 
 // Define a function to render mathematical equations using KaTeX
-function renderMathEquations() {
-    var elements = document.querySelectorAll('p:not([katex-loaded]), span:not([katex-loaded]), div:not(:has(div)):not([katex-loaded])');
-
+function renderMathEquations(elements, criteria) {
     for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
-        if (isElementInViewport(element)) {
-            var divclass = element.attributes['class'];
-            if (divclass && divclass.value.search("edit") != -1) {
-                continue;
-            }
+        if (criteria(element)) {
             renderMathEquation(element);
         }
     }
@@ -112,7 +166,7 @@ function renderMathEquation(element) {
         element.innerHTML = newText;
 
     }
-    // element.setAttribute('katex-loaded', 'true');
+    element.setAttribute('katex-loaded', 'true');
 }
 
 // Define a function to check if an element is currently visible on the screen
