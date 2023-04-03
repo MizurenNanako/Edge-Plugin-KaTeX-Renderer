@@ -63,7 +63,16 @@ function inithooks() {
 
     function FullPageRender() {
         var elements = document.querySelectorAll(selectorStr);
-        renderMathEquations(elements, (elem) => true);
+        renderMathEquations(elements, function (elem) {
+            if (!isElementInViewport(elem)) {
+                return false;
+            }
+            var divclass = elem.attributes['class'];
+            if (!divclass || divclass.value.search(/editor/g) == -1) {
+                return true;
+            }
+            return false;
+        });
     }
 
     function ForceRender() {
@@ -108,6 +117,10 @@ function inithooks() {
         }
     }
 
+    function SyntaxCheck() {
+
+    }
+
     chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         switch (message.action) {
             case "KIR":
@@ -120,7 +133,7 @@ function inithooks() {
                 ForceRender();
                 break;
             case "KSC":
-                // to do
+                SyntaxCheck();
                 break;
             default:
                 break;
@@ -133,7 +146,7 @@ function renderMathEquations(elements, criteria) {
     for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
         if (criteria(element)) {
-            console.log(element);
+            // console.log(element);
             renderMathEquation(element);
         }
     }
