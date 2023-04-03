@@ -7,7 +7,8 @@
     "permissions": [
         "contextMenus",
         "activeTab",
-        "tabs"
+        "tabs",
+        "commands"
     ],
     "icons": {
         "48": "icon48.png",
@@ -18,7 +19,20 @@
             "48": "icon48.png",
             "128": "icon128.png"
         }
-        
+    },
+    "commands": {
+        "KFPR": {
+            "description": "Katex: Render Full Page",
+            "global": true
+        },
+        "KFR": {
+            "description": "Katex: Force Render Selected",
+            "global": true
+        },
+        "KSC": {
+            "description": "Katex: Syntaxs Check",
+            "global": true
+        }
     },
     "content_scripts": [
         {

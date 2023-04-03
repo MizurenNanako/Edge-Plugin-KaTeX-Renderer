@@ -28,10 +28,14 @@ function contextMenusHandler(info, tab) {
     }
 }
 
-
 chrome.action.onClicked.addListener(function (tab) {
     // Do something here when the icon is clicked
     contextMenusHandler({ menuItemId: "KIR" }, tab);
+});
+
+chrome.commands.onCommand.addListener(function (command, tab) {
+    // console.log('Command:', command);
+    contextMenusHandler({ menuItemId: command }, tab);
 });
 
 // Add a listener for the context menu item click event
