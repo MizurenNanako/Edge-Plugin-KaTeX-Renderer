@@ -52,7 +52,12 @@ function inithooks() {
         var selection = window.getSelection();
         if (selection.isCollapsed) {
             var elements = document.querySelectorAll(selectorStr);
-            renderMathEquations(elements, isElementInViewport);
+            renderMathEquations(elements, function (elem) {
+                if (!isElementInViewport(elem)) return false;
+                var divclass = elem.attributes['class'];
+                if (!divclass || divclass.value.search(/editor/g) == -1) return true;
+                return false;
+            });
             console.log('Instant Render');
         }
         else {
@@ -64,15 +69,46 @@ function inithooks() {
     function FullPageRender() {
         var elements = document.querySelectorAll(selectorStr);
         renderMathEquations(elements, function (elem) {
-            if (!isElementInViewport(elem)) {
-                return false;
-            }
             var divclass = elem.attributes['class'];
-            if (!divclass || divclass.value.search(/editor/g) == -1) {
-                return true;
-            }
+            if (!divclass || divclass.value.search(/editor/g) == -1) return true;
             return false;
         });
+    }
+
+    function InstantDeRender() {
+        var elements = document.querySelectorAll('span.katex > span.katex-mathml > math > semantics > annotation')
+        for (const element of elements) {
+            var theSpan = element.parentNode.parentNode.parentNode.parentNode;
+            var theDis = theSpan.parentNode;
+            if (theSpan && theSpan.className === 'katex') {
+                if (!isElementInViewport(theSpan))
+                    continue;
+                if (theDis && theDis.className === 'katex-display')
+                    theDis.outerHTML = '$$' + element.textContent + '$$';
+                // else if (theDis.className.search('math') != -1)
+                //     theDis.parentNode.innerHTML = '$' + element.textContent + '$';
+                else
+                    theSpan.outerHTML = '$' + element.textContent + '$';
+            }
+        }
+        console.log('Instand De-Render');
+    }
+
+    function FullPageDeRender() {
+        var elements = document.querySelectorAll('span.katex > span.katex-mathml > math > semantics > annotation')
+        for (const element of elements) {
+            var theSpan = element.parentNode.parentNode.parentNode.parentNode;
+            var theDis = theSpan.parentNode;
+            if (theSpan && theSpan.className === 'katex') {
+                if (theDis && theDis.className === 'katex-display')
+                    theDis.outerHTML = '$$' + element.textContent + '$$';
+                // else if (theDis.className.search('math') != -1)
+                //     theDis.parentNode.innerHTML = '$' + element.textContent + '$';
+                else
+                    theSpan.outerHTML = '$' + element.textContent + '$';
+            }
+        }
+        console.log('Full Page De-Render');
     }
 
     function ForceRender() {
@@ -143,6 +179,12 @@ function inithooks() {
             case "KFPR":
                 FullPageRender();
                 break;
+            case "KIDR":
+                InstantDeRender();
+                break;
+            case "KFPDR":
+                FullPageDeRender();
+                break;
             case "KFR":
                 ForceRender();
                 break;
@@ -157,8 +199,7 @@ function inithooks() {
 
 // Define a function to render mathematical equations using KaTeX
 function renderMathEquations(elements, criteria) {
-    for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
+    for (const element of elements) {
         if (criteria(element)) {
             // console.log(element);
             renderMathEquation(element);

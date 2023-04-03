@@ -11,6 +11,18 @@ chrome.contextMenus.create({
 });
 
 chrome.contextMenus.create({
+    "id": "KIDR",
+    "title": "Instant De-Render",
+    "contexts": ["page", "selection"],
+});
+
+chrome.contextMenus.create({
+    "id": "KFPDR",
+    "title": "Full Page De-Render",
+    "contexts": ["page"],
+});
+
+chrome.contextMenus.create({
     "id": "KFR",
     "title": "Force Render",
     "contexts": ["selection"],
@@ -23,7 +35,7 @@ chrome.contextMenus.create({
 });
 
 function contextMenusHandler(info, tab) {
-    if (["KIR", "KFPR", "KFR", "KSC"].includes(info.menuItemId)) {
+    if (["KIR", "KFPR", "KIDR", "KFPDR", "KFR", "KSC"].includes(info.menuItemId)) {
         chrome.tabs.sendMessage(tab.id, { action: info.menuItemId });
     }
 }

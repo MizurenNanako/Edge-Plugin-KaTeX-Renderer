@@ -1,6 +1,6 @@
 {
     "name": "KaTeX Renderer",
-    "version": "1.2.3",
+    "version": "1.2.5",
     "description": "A plugin to render mathematical equations using KaTeX",
     "author": "Mizuren Nanako",
     "manifest_version": 3,
@@ -21,8 +21,20 @@
         }
     },
     "commands": {
+        "KIR": {
+            "description": "Katex: Instant Render",
+            "global": true
+        },
         "KFPR": {
             "description": "Katex: Render Full Page",
+            "global": true
+        },
+        "KIDR": {
+            "description": "Katex: Instant De-Render",
+            "global": true
+        },
+        "KFPDR": {
+            "description": "Katex: De-Render Full Page",
             "global": true
         },
         "KFR": {
