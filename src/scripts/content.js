@@ -79,46 +79,60 @@ function inithooks() {
         var selection = window.getSelection();
         if (selection.isCollapsed) {
             console.log('Force Render: No Selection!');
+            return;
         }
-        else {
-            // Get the range that corresponds to the selection
-            const range = selection.getRangeAt(0);
-            // Extract the selected content from the DOM tree
-            const selectedContent = range.extractContents();
-            // Create a new element to replace the selected content
-            const newElement = document.createElement('span');
-            // Append the selected content to the new element
-            newElement.appendChild(selectedContent);
-            // Modify the contents of the new element as needed
-            try {
-                newElement.innerHTML = katex.renderToString(newElement.innerHTML);
-            } catch (err) {
-                console.error('Error rendering equation: ', err);
-                newElement.innerHTML = newElement.innerHTML;
-            }
-            // Insert the new element into the DOM tree
-            range.insertNode(newElement);
-            // Reinsert the remaining text before and after the selection
-            const startContainer = range.startContainer;
-            const endContainer = range.endContainer;
-            if (startContainer !== endContainer) {
-                let currentNode = startContainer.nextSibling;
-                while (currentNode && currentNode !== endContainer) {
-                    const nextNode = currentNode.nextSibling;
-                    newElement.parentNode.insertBefore(currentNode, newElement.nextSibling);
-                    currentNode = nextNode;
-                }
-                newElement.parentNode.insertBefore(endContainer, newElement.nextSibling);
-            } else {
-                const secondHalf = startContainer.splitText(range.endOffset);
-                newElement.parentNode.insertBefore(secondHalf, newElement.nextSibling);
-            }
-            console.log('Force Render');
+        // Get the range that corresponds to the selection
+        const range = selection.getRangeAt(0);
+        // Extract the selected content from the DOM tree
+        const selectedContent = range.extractContents();
+        // Create a new element to replace the selected content
+        const newElement = document.createElement('span');
+        // Append the selected content to the new element
+        newElement.appendChild(selectedContent);
+        // Modify the contents of the new element as needed
+        try {
+            newElement.innerHTML = katex.renderToString(newElement.innerHTML);
+        } catch (err) {
+            console.error('Error rendering equation: ', err);
+            newElement.innerHTML = newElement.innerHTML;
         }
+        // Insert the new element into the DOM tree
+        range.insertNode(newElement);
+        // Reinsert the remaining text before and after the selection
+        const startContainer = range.startContainer;
+        const endContainer = range.endContainer;
+        if (startContainer !== endContainer) {
+            let currentNode = startContainer.nextSibling;
+            while (currentNode && currentNode !== endContainer) {
+                const nextNode = currentNode.nextSibling;
+                newElement.parentNode.insertBefore(currentNode, newElement.nextSibling);
+                currentNode = nextNode;
+            }
+            newElement.parentNode.insertBefore(endContainer, newElement.nextSibling);
+        } else {
+            const secondHalf = startContainer.splitText(range.endOffset);
+            newElement.parentNode.insertBefore(secondHalf, newElement.nextSibling);
+        }
+        console.log('Force Render');
     }
 
     function SyntaxCheck() {
-
+        var selection = window.getSelection();
+        if (selection.isCollapsed) {
+            console.log('Syntax Checker: No Selection!');
+            return;
+        }
+        // Do syntax check
+        const newElement = document.createElement('span');
+        // Append the selected content to the new element
+        newElement.appendChild(selection.getRangeAt(0).cloneContents());
+        try {
+            katex.renderToString(newElement.innerHTML);
+            alert("Syntax Check Passed.");
+        } catch (err) {
+            console.error('Error rendering equation: ', err);
+            alert("Syntax Check Failed: " + err);
+        }
     }
 
     chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {

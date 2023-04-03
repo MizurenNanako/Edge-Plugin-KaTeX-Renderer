@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>KaTeX Output</title>
+  <script type="text/javascript">
+    window.onload = function () {
+      var output = document.getElementById('output');
+
+      // Get active tab.
+      chrome.tabs.query({ active: true }, (activeTabs) => {
+        const tabId = activeTabs[0].id;
+        const message = {};
+        const responseCallback = (responseMessage) => {
+          output.innerText = responseMessage.content;
+        };
+        // Send a message to the content script of the active tab.
+        chrome.tabs.sendMessage(tabId, message, {}, responseCallback);
+      });
+
+    };
+  </script>
+</head>
+
+<body>
+  <p id="output">[Output]</p>
+</body>
+
+</html>
