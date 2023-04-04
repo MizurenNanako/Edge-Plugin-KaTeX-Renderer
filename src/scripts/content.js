@@ -4,20 +4,22 @@ var mathJaxLoaded = typeof MathJax !== 'undefined';
 
 // Only add KaTeX if neither KaTeX nor MathJax is already loaded
 if (!katexLoaded && !mathJaxLoaded) {
+    const kcss = chrome.runtime.getURL('katex/katex.min.css');
+    var kjs = chrome.runtime.getURL("katex/katex.min.js");
+
     // Load the KaTeX CSS file from the plugin's folder
     var katexCSS = document.createElement('link');
     katexCSS.setAttribute('rel', 'stylesheet');
-    katexCSS.setAttribute('href', chrome.runtime.getURL('katex/katex.min.css'));
-    console.log('katex.min.css URL:', katexCSS.getAttribute('href'));
+    katexCSS.setAttribute('href', kcss);
+    console.log('katex.css URL:', katexCSS.getAttribute('href'));
     document.head.appendChild(katexCSS);
 
     // Load the KaTeX JavaScript file from the plugin's directory
-    var src = chrome.runtime.getURL("katex/katex.min.js");
-    import(src);    // I don't know why exactly but this is needed.
+    import(kjs);    // I don't know why exactly but this is needed.
     var katexJS = document.createElement('script');
     katexJS.setAttribute('type', 'text/javascript');
-    katexJS.setAttribute('src', src);
-    console.log('katex.min.js URL:', katexJS.getAttribute('src'));
+    katexJS.setAttribute('src', kjs);
+    console.log('katex.js URL:', katexJS.getAttribute('src'));
     document.head.appendChild(katexJS);
 
     // Wait for the KaTeX library to load before rendering equations
@@ -32,20 +34,6 @@ if (katexLoaded) {
 }
 
 function inithooks() {
-    // Call the renderOnScreen function when the page is first loaded
-    // renderOnScreen();
-
-    // Listen for scroll events and call the renderOnScreen function as the user scrolls down the page
-    // window.addEventListener('scroll', function () {
-    //     renderOnScreen();
-    // });
-
-    // Listen for changes to the DOM and re-render equations if necessary
-    // var observer = new MutationObserver(function () {
-    //     renderOnScreen();
-    // });
-    // observer.observe(document.body, { childList: true, subtree: true });
-
     // const selectorStr = 'p:not([katex-loaded]), div:not([katex-loaded]) > span:not([katex-loaded])';
     const selectorStr = 'p, div > span, div:not(:has(div)):not(:has(span)):not(:has(p))';
 
@@ -77,38 +65,14 @@ function inithooks() {
     }
 
     function InstantDeRender() {
-        var elements = document.querySelectorAll('span.katex > span.katex-mathml > math > semantics > annotation')
-        for (const element of elements) {
-            var theSpan = element.parentNode.parentNode.parentNode.parentNode;
-            var theDis = theSpan.parentNode;
-            if (theSpan && theSpan.className === 'katex') {
-                if (!isElementInViewport(theSpan))
-                    continue;
-                if (theDis && ['katex-display', 'math math-inline'].includes(theDis.className))
-                    theDis.outerHTML = '<br/>$$' + element.textContent + '$$<br/>';
-                // else if (theDis.className.search('math') != -1)
-                //     theDis.parentNode.innerHTML = '$' + element.textContent + '$';
-                else
-                    theSpan.outerHTML = '$' + element.textContent + '$';
-            }
-        }
+        const elements = document.querySelectorAll('span.katex > span.katex-mathml > math > semantics > annotation')
+        deRenderMathFromAnnotations(elements, isElementInViewport);
         console.log('Instand De-Render');
     }
 
     function FullPageDeRender() {
-        var elements = document.querySelectorAll('span.katex > span.katex-mathml > math > semantics > annotation')
-        for (const element of elements) {
-            var theSpan = element.parentNode.parentNode.parentNode.parentNode;
-            var theDis = theSpan.parentNode;
-            if (theSpan && theSpan.className === 'katex') {
-                if (theDis && theDis.className === 'katex-display')
-                    theDis.outerHTML = '<br/>$$' + element.textContent + '$$<br/>';
-                // else if (theDis.className.search('math') != -1)
-                //     theDis.parentNode.innerHTML = '$' + element.textContent + '$';
-                else
-                    theSpan.outerHTML = '$' + element.textContent + '$';
-            }
-        }
+        const elements = document.querySelectorAll('span.katex > span.katex-mathml > math > semantics > annotation')
+        deRenderMathFromAnnotations(elements, (_elem) => true);
         console.log('Full Page De-Render');
     }
 
@@ -120,20 +84,19 @@ function inithooks() {
         }
         // Get the range that corresponds to the selection
         const range = selection.getRangeAt(0);
-        // Extract the selected content from the DOM tree
-        const selectedContent = range.extractContents();
         // Create a new element to replace the selected content
         const newElement = document.createElement('span');
-        // Append the selected content to the new element
-        newElement.appendChild(selectedContent);
-        // Modify the contents of the new element as needed
+        // Extract the selected content from the DOM tree
+        // Append it to the new element
+        newElement.appendChild(range.extractContents());
+        // Render the contents of the new element
         try {
             newElement.innerHTML = katex.renderToString(newElement.innerHTML);
         } catch (err) {
             console.error('Error rendering equation: ', err);
             newElement.innerHTML = newElement.innerHTML;
         }
-        // Insert the new element into the DOM tree
+        // Insert the new element back into the DOM tree
         range.insertNode(newElement);
         // Reinsert the remaining text before and after the selection
         const startContainer = range.startContainer;
@@ -170,7 +133,7 @@ function inithooks() {
             const el = elem[1] ? elem[1] : elem[2];
             try {
                 console.log(el);
-                katex.renderToString(el);
+                katex.renderToString(el.trim());
             } catch (err) {
                 // console.error('Error rendering equation: ', err);
                 success = false;
@@ -208,11 +171,9 @@ function inithooks() {
     });
 }
 
-// Define a function to render mathematical equations using KaTeX
 function renderMathEquations(elements, criteria) {
     for (const element of elements) {
         if (criteria(element)) {
-            // console.log(element);
             renderMathEquation(element);
         }
     }
@@ -220,9 +181,7 @@ function renderMathEquations(elements, criteria) {
 
 function renderMathEquation(element) {
     var content = element.textContent;
-
     function errRet(err, p1) {
-        // console.error('Error rendering equation: ', err);
         // span.katex > span.katex-mathml > math > semantics > annotation
         return '<span class="katex"><span style="color:red">'
             + err
@@ -257,7 +216,22 @@ function renderMathEquation(element) {
     // element.setAttribute('katex-loaded', 'true');
 }
 
-// Define a function to check if an element is currently visible on the screen
+function deRenderMathFromAnnotations(elements, criteriaOfSpan) {
+    for (const element of elements) {
+        const theSpan = element.parentNode.parentNode.parentNode.parentNode;
+        const theDis = theSpan.parentNode;
+        if (theSpan && theSpan.className === 'katex') {
+            const original = new Option(element.textContent).innerHTML;
+            if (!criteriaOfSpan(theSpan))
+                continue;
+            if (theDis && ['katex-display', 'math math-inline'].includes(theDis.className))
+                theDis.outerHTML = '<br/>$$' + original + '$$<br/>';
+            else
+                theSpan.outerHTML = '$' + original + '$';
+        }
+    }
+}
+
 function isElementInViewport(element) {
     var rect = element.getBoundingClientRect();
     return (

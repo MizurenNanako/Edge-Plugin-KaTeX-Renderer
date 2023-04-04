@@ -1,6 +1,6 @@
 {
     "name": "KaTeX Renderer",
-    "version": "2.0.3",
+    "version": "2.1.6",
     "description": "A plugin to render mathematical equations using KaTeX",
     "author": "Mizuren Nanako",
     "manifest_version": 3,
@@ -11,14 +11,15 @@
         "commands"
     ],
     "icons": {
-        "48": "icon48.png",
-        "128": "icon128.png"
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
     },
     "action": {
         "default_icon": {
-            "48": "icon48.png",
-            "128": "icon128.png"
-        }
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        },
+        "default_popup": "pages/panel.html"
     },
     "commands": {
         "KIR": {

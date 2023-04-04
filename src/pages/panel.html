@@ -1,0 +1,78 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
+    <style>
+        body {
+            width: 200px;
+            background-color: rgba(255, 192, 203, 0.686);
+        }
+
+        button {
+            background-color: grey;
+            border: none;
+            color: pink;
+            padding: 10px 5px;
+            margin-top: 1px;
+            text-align: center;
+            transition-duration: 0.4s;
+            font-size: 16px;
+            align-self: center;
+            transition: all 0.5s;
+            cursor: pointer;
+        }
+
+        button span {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        button span:after {
+            content: '\00bb';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -15px;
+            transition: 0.5s;
+        }
+
+        button:hover span {
+            padding-right: 15px;
+        }
+
+        button:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+
+        button span:active:after {
+            padding: 0;
+            margin: 0;
+            opacity: 1;
+            transition: 0s
+        }
+    </style>
+    <title>KaTeX Renderer</title>
+</head>
+
+<body>
+    <h1>KaTeX Renderer</h1>
+    <div style="display: flex; justify-content: center;">
+        <img src="/icons/icon128.png" alt="ICO" />
+    </div>
+    <div style="display: flex;justify-content: center;">
+        <h3><ruby>つかささん<rt>Tsukasa-San</rt></ruby>　<ruby>かわいい<rt>Kawaii</rt></ruby><ruby>ね<rt>ne</rt></ruby>～</h3>
+    </div>
+    <div style="display: grid; align-items: inherit;">
+        <button id="KIR"><span>Instant Render</span></button>
+        <button id="KFPR"><span>Full Page Render</span></button>
+        <button id="KIDR"><span>Instant De-Render</span></button>
+        <button id="KFPDR"><span>Full Page De-Render</span></button>
+    </div>
+    <script src="/scripts/panel.js"></script>
+</body>
+
+</html>
